@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "ADC Data Plane API",
-    "version": "2026-08-01-preview",
+    "version": "2026-09-01",
     "description": "ADC Data Plane API.",
     "x-typespec-generated": [
       {
@@ -207,9 +207,6 @@
           }
         },
         "x-ms-examples": {
-          "AzureSandboxes_create - artifact version": {
-            "$ref": "./examples/AzureSandboxes_createFromArtifactVersion.json"
-          },
           "AzureSandboxes_create - from a disk image": {
             "$ref": "./examples/AzureSandboxes_create.json"
           },
@@ -2270,10 +2267,7 @@
       "enum": [
         "None",
         "GitHubCopilot",
-        "Moltbot",
-        "UbuntuSystemd",
-        "Claude",
-        "OpenClaw"
+        "Claude"
       ],
       "x-ms-enum": {
         "name": "PresetSandboxType",
@@ -2290,23 +2284,8 @@
             "description": "Serialized PresetSandboxType value."
           },
           {
-            "name": "Moltbot",
-            "value": "Moltbot",
-            "description": "Serialized PresetSandboxType value."
-          },
-          {
-            "name": "UbuntuSystemd",
-            "value": "UbuntuSystemd",
-            "description": "Serialized PresetSandboxType value."
-          },
-          {
             "name": "Claude",
             "value": "Claude",
-            "description": "Serialized PresetSandboxType value."
-          },
-          {
-            "name": "OpenClaw",
-            "value": "OpenClaw",
             "description": "Serialized PresetSandboxType value."
           }
         ]
@@ -2635,10 +2614,6 @@
             "type": "string"
           }
         },
-        "vmmType": {
-          "$ref": "#/definitions/VmmType",
-          "description": "vmmType value."
-        },
         "entrypoint": {
           "type": "array",
           "description": "Entrypoint override for the sandbox container.",
@@ -2739,13 +2714,6 @@
           "type": "string",
           "description": "The base URL for data plane operations (exec, files, ports, etc.). Client SDKs should use this URL for all data plane calls. Currently points to the Global API, but may be redirected to cluster-direct URLs in the future."
         },
-        "tokens": {
-          "type": "object",
-          "description": "Sandbox execution tokens issued as part of the create or resume request, keyed by account.",
-          "additionalProperties": {
-            "$ref": "#/definitions/SandboxExecutionTokenResponse"
-          }
-        },
         "agentIdentity": {
           "$ref": "#/definitions/SandboxAgentIdentityRef",
           "description": "agentIdentity value."
@@ -2767,10 +2735,6 @@
         "vnetConnectionName": {
           "type": "string",
           "description": "The name of the vnet connection used when creating this sandbox, if any."
-        },
-        "customerVnetConnectionName": {
-          "type": "string",
-          "description": "Legacy alias for string? SandboxFields.VnetConnectionName. Emits the historical `customerVnetConnectionName` wire field so deployed SDKs and CLIs that parse it keep working."
         },
         "systemVnetConnectionName": {
           "type": "string",
@@ -2802,24 +2766,6 @@
         "id",
         "sourcesRef",
         "resources"
-      ]
-    },
-    "SandboxGpu": {
-      "type": "object",
-      "description": "Sandbox GPU wire model.",
-      "properties": {
-        "sku": {
-          "type": "string",
-          "description": "sku value."
-        },
-        "quantity": {
-          "type": "string",
-          "description": "quantity value."
-        }
-      },
-      "required": [
-        "sku",
-        "quantity"
       ]
     },
     "SandboxLifecyclePolicy": {
@@ -2926,10 +2872,6 @@
           "additionalProperties": {
             "type": "string"
           }
-        },
-        "vmmType": {
-          "$ref": "#/definitions/VmmType",
-          "description": "vmmType value."
         },
         "entrypoint": {
           "type": "array",
@@ -3053,17 +2995,9 @@
           "type": "string",
           "description": "Optional vnet connection name to use for VNET injection. When specified, the sandbox traffic will be routed through the VNET identified by this connection. Requires the sandbox to be created within an ARM-managed sandbox group that has the named vnet connection."
         },
-        "customerVnetConnectionName": {
-          "type": "string",
-          "description": "Legacy alias for string? SandboxRequest.VnetConnectionName. Accepts and emits the historical `customerVnetConnectionName` wire field so deployed SDKs and CLIs keep working. Prefer string? SandboxRequest.VnetConnectionName for new callers."
-        },
         "systemVnetConnectionName": {
           "type": "string",
           "description": "Optional system vnet connection name for system-managed VNET injection. Works identically to string? SandboxRequest.VnetConnectionName but references a system VNet connection."
-        },
-        "executionTokens": {
-          "$ref": "#/definitions/SandboxExecutionTokensRequest",
-          "description": "executionTokens value."
         },
         "isDelegationBackingResource": {
           "type": "boolean",
@@ -3086,10 +3020,6 @@
         "disk": {
           "$ref": "#/definitions/StorageQuantity",
           "description": "disk value."
-        },
-        "gpu": {
-          "$ref": "#/definitions/SandboxGpu",
-          "description": "gpu value."
         }
       },
       "required": [
@@ -4125,36 +4055,6 @@
         "code",
         "message"
       ]
-    },
-    "VmmType": {
-      "type": "string",
-      "description": "VmmType values.",
-      "enum": [
-        "cloudhypervisor",
-        "hcs",
-        "firecracker"
-      ],
-      "x-ms-enum": {
-        "name": "VmmType",
-        "modelAsString": true,
-        "values": [
-          {
-            "name": "cloudhypervisor",
-            "value": "cloudhypervisor",
-            "description": "Serialized VmmType value."
-          },
-          {
-            "name": "hcs",
-            "value": "hcs",
-            "description": "Serialized VmmType value."
-          },
-          {
-            "name": "firecracker",
-            "value": "firecracker",
-            "description": "Serialized VmmType value."
-          }
-        ]
-      }
     },
     "VolumeName": {
       "type": "string",

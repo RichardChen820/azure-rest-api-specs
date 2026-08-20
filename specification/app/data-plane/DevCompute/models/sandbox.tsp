@@ -1,4 +1,5 @@
 using TypeSpec.Rest;
+using TypeSpec.Versioning;
 
 namespace AzureDevCompute;
 
@@ -14,7 +15,8 @@ model SandboxFields {
   labels?: Record<string>;
 
   /** vmmType value. */
-  vmmType: VmmType;
+  @removed(ApiVersions.v2026_09_01)
+  vmmType?: VmmType;
 
   /** Entrypoint override for the sandbox container. */
   entrypoint?: string[];
@@ -78,6 +80,7 @@ model SandboxFields {
   managementUrl?: string;
 
   /** Sandbox execution tokens issued as part of the create or resume request, keyed by account. */
+  @removed(ApiVersions.v2026_09_01)
   tokens?: Record<SandboxExecutionTokenResponse>;
 
   /** agentIdentity value. */
@@ -93,6 +96,7 @@ model SandboxFields {
   vnetConnectionName?: string;
 
   /** Legacy alias for string? SandboxFields.VnetConnectionName. Emits the historical `customerVnetConnectionName` wire field so deployed SDKs and CLIs that parse it keep working. */
+  @removed(ApiVersions.v2026_09_01)
   customerVnetConnectionName?: string;
 
   /** The name of the system vnet connection used when creating this sandbox, if any. */
@@ -172,10 +176,10 @@ model ContainerProbeStatus {
   lastResult?: ContainerProbeResult;
 
   /** consecutiveFailures value. */
-  consecutiveFailures: int32;
+  consecutiveFailures?: int32 = 0;
 
   /** consecutiveSuccesses value. */
-  consecutiveSuccesses: int32;
+  consecutiveSuccesses?: int32 = 0;
 
   /** lastCheckedAt value. */
   lastCheckedAt?: utcDateTime;
@@ -499,6 +503,35 @@ model EgressPolicyRuleAction {
 
   /** routingMode value. */
   routingMode?: EgressRuleRoutingMode;
+
+  /** Controls how matching traffic is forwarded. */
+  forward?: EgressForwardMode = "default";
+
+  /** The proxy used to forward matching traffic. */
+  forwardProxy?: EgressForwardProxy;
+}
+
+/** Controls how egress traffic is forwarded. */
+union EgressForwardMode {
+  string,
+
+  /** Uses the default forwarding behavior. */
+  Default: "default",
+
+  /** Forwards traffic directly. */
+  Direct: "direct",
+
+  /** Forwards traffic through a proxy. */
+  Proxy: "proxy",
+}
+
+/** Proxy configuration for forwarded egress traffic. */
+model EgressForwardProxy {
+  /** The proxy URL. */
+  url: string;
+
+  /** The certificate authority data used to validate the proxy. */
+  ca?: string;
 }
 
 /** Request matching criteria for an egress policy rule. All specified conditions must match (AND logic). EgressPolicyMatchScheme? EgressPolicyRuleMatch.Scheme is nullable; null means the author did not specify a scheme and the effective default is resolved per rule polarity at evaluation time. A static Deny defaults to EgressPolicyMatchScheme.Any so a block is not silently scoped to HTTPS and bypassed over HTTP. Every other rule — including positive rules (Allow / Transform / Rewrite) and dynamic EgressPolicyHookRef? EgressPolicyRule.HookRef rules (whose outcome can be Allow/Transform/Rewrite or fail open) — defaults to EgressPolicyMatchScheme.Https: on plaintext HTTP there is no SNI, so matching uses the sandbox-controlled Host header with no certificate validation, and a positive or hook match there would let a sandbox reach a non-allowlisted IP while spoofing an allowlisted Host. Set EgressPolicyMatchScheme.Any explicitly to match both schemes, or EgressPolicyMatchScheme.Http / EgressPolicyMatchScheme.Https to pin a single scheme. For IP-based match hosts, scheme matching is ignored (no TLS certificate validation applies to IPs anyway).bool? EgressPolicyRuleMatch.NormalizePath controls whether the request path is decoded and normalized (encoded-slash decode, slash merging, and ./.. dot-segment removal) before it is matched against string? EgressPolicyRuleMatch.Path. It defaults to enabled (null is treated as true) to prevent path-confusion bypasses where an encoded path such as /allowed%2F.. matches an allow rule but the upstream server resolves it to a different path. Set to false only for upstreams that require the raw, un-normalized path. */
@@ -729,6 +762,9 @@ model HttpEgressSection {
 
   /** enforcementMode value. */
   enforcementMode?: EgressPolicyEnforcementMode;
+
+  /** The default proxy used to forward egress traffic. */
+  defaultForward?: EgressForwardProxy;
 }
 
 /** A single IP access control rule. */
@@ -755,12 +791,6 @@ model IpAccessControl {
 
   /** rules value. */
   rules?: IpAccessControlRule[];
-}
-
-/** Request body for `PATCH /sandboxes/{id}`. Uses JSON Merge Patch semantics for labels: keys with non-null values are set, keys with null values are removed, absent keys are unchanged. */
-model PatchSandboxRequest {
-  /** labels value. */
-  labels?: Record<string>;
 }
 
 /** Pod-level content package declaration. Declares a content package that the pod uses. Per-container downloads reference content packages by ContentPackageId PodContentPackage.ContentPackageId. */
@@ -961,6 +991,7 @@ model SandboxExecutionTokensRequest {
 }
 
 /** Sandbox GPU wire model. */
+@removed(ApiVersions.v2026_09_01)
 model SandboxGpu {
   /** sku value. */
   sku: string;
@@ -1008,6 +1039,7 @@ model SandboxRequest {
   labels?: Record<string>;
 
   /** vmmType value. */
+  @removed(ApiVersions.v2026_09_01)
   vmmType?: VmmType;
 
   /** entrypoint value. */
@@ -1080,12 +1112,14 @@ model SandboxRequest {
   vnetConnectionName?: string;
 
   /** Legacy alias for string? SandboxRequest.VnetConnectionName. Accepts and emits the historical `customerVnetConnectionName` wire field so deployed SDKs and CLIs keep working. Prefer string? SandboxRequest.VnetConnectionName for new callers. */
+  @removed(ApiVersions.v2026_09_01)
   customerVnetConnectionName?: string;
 
   /** Optional system vnet connection name for system-managed VNET injection. Works identically to string? SandboxRequest.VnetConnectionName but references a system VNet connection. */
   systemVnetConnectionName?: string;
 
   /** executionTokens value. */
+  @removed(ApiVersions.v2026_09_01)
   executionTokens?: SandboxExecutionTokensRequest;
 
   /** Indicates this sandbox is created within a sandbox group that has resource delegations. Resolved from the sandbox group at the controller level and forwarded to the cluster so the Identity Proxy can suppress non-delegated identities even when no delegated identities exist yet. */
@@ -1104,6 +1138,7 @@ model SandboxResources {
   disk?: StorageQuantity;
 
   /** gpu value. */
+  @removed(ApiVersions.v2026_09_01)
   gpu?: SandboxGpu;
 }
 
@@ -1153,6 +1188,24 @@ model SandboxSource {
 
   /** pod value. */
   pod?: SandboxSourcePod;
+
+  /** The artifact version used as the sandbox source. */
+  artifactVersion?: SandboxSourceArtifactVersion;
+}
+
+/** An artifact version used as a sandbox source. */
+model SandboxSourceArtifactVersion {
+  /** The artifact version identifier. */
+  id: string;
+
+  /** Authentication configuration used to access the artifact version. */
+  auth: SandboxSourceAuth;
+}
+
+/** Authentication configuration for a sandbox source. */
+model SandboxSourceAuth {
+  /** The identity used to access the sandbox source. */
+  identity: string;
 }
 
 /** Volume configuration for a sandbox. */
@@ -1349,15 +1402,18 @@ union PresetSandboxType {
   GitHubCopilot: "GitHubCopilot",
 
   /** Serialized PresetSandboxType value. */
+  @removed(ApiVersions.v2026_09_01)
   Moltbot: "Moltbot",
 
   /** Serialized PresetSandboxType value. */
+  @removed(ApiVersions.v2026_09_01)
   UbuntuSystemd: "UbuntuSystemd",
 
   /** Serialized PresetSandboxType value. */
   Claude: "Claude",
 
   /** Serialized PresetSandboxType value. */
+  @removed(ApiVersions.v2026_09_01)
   OpenClaw: "OpenClaw",
 }
 
@@ -1893,6 +1949,7 @@ union TransportProtocol {
 }
 
 /** VmmType values. */
+@removed(ApiVersions.v2026_09_01)
 union VmmType {
   string,
 
