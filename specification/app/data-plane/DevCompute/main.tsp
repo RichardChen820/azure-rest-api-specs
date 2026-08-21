@@ -38,7 +38,8 @@ model AzureDataPlaneClientCredentialsFlow {
   type: OAuth2FlowType.clientCredentials;
 
   /** Microsoft Entra ID token endpoint. */
-  tokenUri: "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+  #suppress "@azure-tools/typespec-client-generator-core/csharp-no-url-suffix"
+  tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
   /** OAuth2 scopes required by the service. */
   scopes: ["https://management.azuredevcompute.io/.default"];
